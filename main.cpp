@@ -177,7 +177,7 @@ void splitMessage(vector<string>& msg)
 void storeInfo(vector<string>& eMsg, vector<int>& key)
 {
   ofstream file;
-  file.open("messages.txt");
+  file.open("EncryptedMessages.txt");
 
   file << left << setw(20) << "Encrypted Message: ";
   for(int i = 0; i < eMsg.size(); i++)
