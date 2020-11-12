@@ -9,6 +9,7 @@
 using namespace std;
 
 //Function prototypes
+char encryptDecrypt();
 string encrypt(string, int);
 string decrypt(string, int);
 string getMessage();
@@ -18,6 +19,8 @@ void unscramble(vector<string>&, vector<int>);
 void storeInfo(vector<string>&, vector<int>&);
 void getDecryptKey(vector<int>&);
 
+
+//Container for Caesar Cipher algorithms
 struct CaesarCipher
 {
   //Caesar Cipher encryption algorithm
@@ -40,7 +43,7 @@ struct CaesarCipher
     return msg;
   }
 
-  //Decrypts an already encrypted message
+  //Reverses caesar cipher
   string decrypt(string msg, int key)
   {
     for (int i = 0; msg[i] != '\0'; i++)
@@ -61,6 +64,7 @@ struct CaesarCipher
   }
 };
 
+//Container for scrambling and unscrambling algorithms
 struct Scramble
 {
   vector<int> key;
@@ -87,6 +91,7 @@ struct Scramble
     cout << endl;
   }
 
+  //Reverses scramble algorithm
   void unscramble(vector<string>& msg, vector<int> decryptKey)
   {
     int num1 = key.size() - 1;
@@ -119,18 +124,24 @@ int main()
 
   vector<int> decryptKey;
 
+  cout << "Welcome to my message encryption program\n";
+  encryptDecrypt();
+
+  //Gets message from the user and stores within info.txt
   message = getMessage();
+  //Runs python script that splits message in info.txt onto separate lines
   system("SplitMessage.exe");
+  //Appends each line of info.txt into splitMsg vector
   splitMessage(splitMsg);
 
-  scramble.scramble(splitMsg);
+  // scramble.scramble(splitMsg);
 
-  cout << "Scrambled message: ";
-  for(int i = 0; i < splitMsg.size(); i++)
-    cout << splitMsg[i] << " ";
-  cout << endl;
-
-  storeInfo(splitMsg, scramble.key);
+  // cout << "Scrambled message: ";
+  // for(int i = 0; i < splitMsg.size(); i++)
+  //   cout << splitMsg[i] << " ";
+  // cout << endl;
+  //
+  // storeInfo(splitMsg, scramble.key);
 
   // scramble.unscramble(splitMsg, scramble.key);
   //
@@ -151,7 +162,7 @@ string getMessage()
 
   file.open("info.txt");
 
-  cout << "Enter a message that you would like to encrypt: ";
+  cout << "Enter a message that you would like to encrypt or decrypt: ";
   getline(cin, msg);
   file << msg;
 
@@ -177,7 +188,7 @@ void splitMessage(vector<string>& msg)
 void storeInfo(vector<string>& eMsg, vector<int>& key)
 {
   ofstream file;
-  file.open("EncryptedMessages.txt");
+  file.open("EncryptedMessages.txt", ios_base::app);
 
   file << left << setw(20) << "Encrypted Message: ";
   for(int i = 0; i < eMsg.size(); i++)
@@ -196,5 +207,26 @@ void storeInfo(vector<string>& eMsg, vector<int>& key)
 void getDecryptKey(vector<int>& key)
 {
   Scramble scramble;
+
+}
+
+char encryptDecrypt()
+{
+  char choice;
+  cout << "Would you like to encrypt or decrypt a message?\n";
+  cout << "Enter 'e' to encrypt or 'd' to decrypt: ";
+  cin >> choice;
+
+  switch(choice)
+  {
+  case 'e':
+  case 'E':
+    return 'e';
+  case 'd':
+  case 'D':
+    return 'd';
+  default:
+    return 'e';
+  }
 
 }
