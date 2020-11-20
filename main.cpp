@@ -9,10 +9,10 @@
 using namespace std;
 
 //Function prototypes
-char encryptDecrypt();
-string encrypt(string, int);
-string decrypt(string, int);
-string getMessage();
+string encryptDecrypt();
+string encrypt(string&);
+string decrypt(string&, int);
+void getMessageForEncryption(string&);
 void splitMessage(vector<string>&);
 void scramble(vector<string>&);
 void unscramble(vector<string>&, vector<int>);
@@ -23,15 +23,17 @@ void getDecryptKey(vector<int>&);
 //Container for Caesar Cipher algorithms
 struct CaesarCipher
 {
+  int cipherKey = rand() % 35 + 10;    //Gets random number between 10 and 35
+
   //Caesar Cipher encryption algorithm
-  string encrypt(string msg, int cipher)
+  string encrypt(string& msg)
   {
     for(int i = 0; msg[i] != '\0'; i++)
     {
       msg[i] = tolower(msg[i]);
       if(isalpha(msg[i]))
       {
-        for(int j = 0; j < cipher; j++)
+        for(int j = 0; j < cipherKey; j++)
         {
           if(msg[i] == 'z')
             msg[i] = 'a';
@@ -44,14 +46,14 @@ struct CaesarCipher
   }
 
   //Reverses caesar cipher
-  string decrypt(string msg, int key)
+  string decrypt(string& msg)
   {
     for (int i = 0; msg[i] != '\0'; i++)
     {
       msg[i] = tolower(msg[i]);
       if(isalpha(msg[i]))
       {
-        for(int j = 0; j < key; j++)
+        for(int j = 0; j < cipherKey; j++)
         {
           if(msg[i] == 'a')
             msg[i] = 'z';
@@ -114,25 +116,36 @@ int main()
 {
   //Creates random seed for random cipher length
   srand(time(0));
-  int randNum = rand() % 35 + 10;    //Gets random number between 10 and 35
 
   CaesarCipher caesar;
   Scramble scramble;
 
+  string choice;
   string message;
   vector<string> splitMsg;
 
   vector<int> decryptKey;
 
-  cout << "Welcome to my message encryption program\n";
-  encryptDecrypt();
+  cout << "Welcome to my message encryption program\nEnter \"done\" when you are done\n";
+  choice = encryptDecrypt();
 
-  //Gets message from the user and stores within info.txt
-  message = getMessage();
-  //Runs python script that splits message in info.txt onto separate lines
-  system("SplitMessage.exe");
-  //Appends each line of info.txt into splitMsg vector
-  splitMessage(splitMsg);
+  cin.ignore(choice.length()+1,'\n');
+  getMessageForEncryption(message);
+
+  if(choice == "e")
+  {
+    caesar.encrypt(message);
+    cout << message << endl;
+    decryptKey.push_back(caesar.cipherKey);
+    cout << decryptKey[0] << endl;
+
+    //Runs python script that splits message in info.txt onto separate lines
+    system("SplitMessage.exe");
+    //Appends each line of info.txt into splitMsg vector
+    splitMessage(splitMsg);
+  }
+
+
 
   // scramble.scramble(splitMsg);
 
@@ -155,20 +168,16 @@ int main()
 
 //Gets a message from the user and stores it in msg
 //Stores users message in info.txt file for splitting using SplitMessage.py
-string getMessage()
+void getMessageForEncryption(string& msg)
 {
   ofstream file;
-  string msg;
+
+  cout << "Enter a message to be encrypted: ";
+  getline(cin, msg);
 
   file.open("info.txt");
-
-  cout << "Enter a message that you would like to encrypt or decrypt: ";
-  getline(cin, msg);
   file << msg;
-
   file.close();
-
-  return msg;
 }
 
 //Splits ciphered message to prepare for scrambling
@@ -210,23 +219,11 @@ void getDecryptKey(vector<int>& key)
 
 }
 
-char encryptDecrypt()
+string encryptDecrypt()
 {
-  char choice;
-  cout << "Would you like to encrypt or decrypt a message?\n";
+  string choice;
   cout << "Enter 'e' to encrypt or 'd' to decrypt: ";
   cin >> choice;
 
-  switch(choice)
-  {
-  case 'e':
-  case 'E':
-    return 'e';
-  case 'd':
-  case 'D':
-    return 'd';
-  default:
-    return 'e';
-  }
-
+  return choice;
 }
