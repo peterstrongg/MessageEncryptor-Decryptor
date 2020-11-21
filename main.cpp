@@ -14,7 +14,7 @@ string encrypt(string&);
 string decrypt(string&, int);
 void getMessageForEncryption(string&);
 void splitMessage(vector<string>&);
-void scramble(vector<string>&);
+void scramble(vector<string>&, vector<int>&);
 void unscramble(vector<string>&, vector<int>);
 void storeInfo(vector<string>&, vector<int>&);
 void getDecryptKey(vector<int>&);
@@ -69,10 +69,10 @@ struct CaesarCipher
 //Container for scrambling and unscrambling algorithms
 struct Scramble
 {
-  vector<int> key;
+  //vector<int> key;
 
   //Scrambles each word in msg vector
-  void scramble(vector<string>& msg)
+  void scramble(vector<string>& msg, vector<int>& key)
   {
     srand(time(0));
     for(int i = 0; i < msg.size(); i++)
@@ -96,8 +96,8 @@ struct Scramble
   //Reverses scramble algorithm
   void unscramble(vector<string>& msg, vector<int> decryptKey)
   {
-    int num1 = key.size() - 1;
-    int num2 = key.size() - 2;
+    int num1 = decryptKey.size() - 1;
+    int num2 = decryptKey.size() - 2;
 
     for(int i = 0; i < msg.size(); i++)
     {
@@ -129,7 +129,7 @@ int main()
   cout << "Welcome to my message encryption program\nEnter \"done\" when you are done\n";
   choice = encryptDecrypt();
 
-  cin.ignore(choice.length()+1,'\n');
+  cin.ignore(choice.length() + 1,'\n');
   getMessageForEncryption(message);
 
   if(choice == "e")
@@ -143,6 +143,12 @@ int main()
     system("SplitMessage.exe");
     //Appends each line of info.txt into splitMsg vector
     splitMessage(splitMsg);
+
+    for(int i = 0; i < splitMsg.size(); i++)
+      cout << splitMsg[i] << " ";
+    cout << endl;
+
+    scramble.scramble(splitMsg, decryptKey);
   }
 
 
