@@ -12,7 +12,9 @@ using namespace std;
 string encryptDecrypt();
 string encrypt(string&);
 string decrypt(string&, int);
-void getMessageForEncryption(string&);
+string getMessage();
+void prepForScramble(string, vector<string>&);
+void prepMessage(string);
 void splitMessage(vector<string>&);
 void scramble(vector<string>&, vector<int>&);
 void unscramble(vector<string>&, vector<int>);
@@ -129,8 +131,8 @@ int main()
   cout << "Welcome to my message encryption program\nEnter \"done\" when you are done\n";
   choice = encryptDecrypt();
 
-  cin.ignore(choice.length() + 1,'\n');
-  getMessageForEncryption(message);
+  cin.ignore(choice.length()+1,'\n');
+  message = getMessage();
 
   if(choice == "e")
   {
@@ -139,10 +141,7 @@ int main()
     decryptKey.push_back(caesar.cipherKey);
     cout << decryptKey[0] << endl;
 
-    //Runs python script that splits message in info.txt onto separate lines
-    system("SplitMessage.exe");
-    //Appends each line of info.txt into splitMsg vector
-    splitMessage(splitMsg);
+    prepForScramble(message, splitMsg);
 
     for(int i = 0; i < splitMsg.size(); i++)
       cout << splitMsg[i] << " ";
@@ -172,33 +171,51 @@ int main()
   return 0;
 }
 
-//Gets a message from the user and stores it in msg
-//Stores users message in info.txt file for splitting using SplitMessage.py
-void getMessageForEncryption(string& msg)
+string getMessage()
 {
-  ofstream file;
-
-  cout << "Enter a message to be encrypted: ";
+  string msg;
+  cout << "Enter a message for encryption: ";
   getline(cin, msg);
 
-  file.open("info.txt");
-  file << msg;
-  file.close();
+  return msg;
 }
 
-//Splits ciphered message to prepare for scrambling
-void splitMessage(vector<string>& msg)
+//Gets a message from the user and stores it in msg
+//Stores users message in info.txt file for splitting using SplitMessage.py
+void prepForScramble(string msg, vector<string>& msgVector)
 {
-  ifstream file;
+  ofstream fileOutput;
+  ifstream fileInput;
   string line;
 
-  file.open("info.txt");
+  fileOutput.open("info.txt");
+  fileOutput << msg;
+  fileOutput.close();
 
-  while(getline(file, line))
-    msg.push_back(line);
+  system("SplitMessage.exe");
 
-  file.close();
+  fileInput.open("info.txt");
+
+  while(getline(fileInput, line))
+    msgVector.push_back(line);
+
+  fileInput.close();
 }
+
+// //Splits ciphered message to prepare for scrambling
+// void splitMessage(vector<string>& msg)
+// {
+//   ofstream fileOutput;
+//   ifstream fileInput;
+//   string line;
+//
+//   fileInput.open("info.txt");
+//
+//   while(getline(Inputfile, line))
+//     msg.push_back(line);
+//
+//   file.close();
+// }
 
 void storeInfo(vector<string>& eMsg, vector<int>& key)
 {
