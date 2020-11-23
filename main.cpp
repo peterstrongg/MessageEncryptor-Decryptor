@@ -1,4 +1,5 @@
 #include<iostream>
+#include<sstream>
 #include<iomanip>
 #include<fstream>
 #include<cstdlib>
@@ -12,13 +13,14 @@ using namespace std;
 string encryptDecrypt();
 string encrypt(string&);
 string decrypt(string&, int);
-string getMessage();
+string getMessageForEncryption();
+void getMessageAndKey(vector<string>&, vector<int>&);
 void prepForScramble(string, vector<string>&);
 void prepMessage(string);
 void splitMessage(vector<string>&);
 void scramble(vector<string>&, vector<int>&);
 void unscramble(vector<string>&, vector<int>);
-void storeInfo(vector<string>&, vector<int>&);
+void storeInfo(vector<string>, vector<int>);
 void getDecryptKey(vector<int>&);
 
 
@@ -30,6 +32,7 @@ struct CaesarCipher
   //Caesar Cipher encryption algorithm
   string encrypt(string& msg)
   {
+    cout << cipherKey << endl;
     for(int i = 0; msg[i] != '\0'; i++)
     {
       msg[i] = tolower(msg[i]);
@@ -48,14 +51,14 @@ struct CaesarCipher
   }
 
   //Reverses caesar cipher
-  string decrypt(string& msg)
+  string decrypt(string& msg, vector<int>decryptKey)
   {
     for (int i = 0; msg[i] != '\0'; i++)
     {
       msg[i] = tolower(msg[i]);
       if(isalpha(msg[i]))
       {
-        for(int j = 0; j < cipherKey; j++)
+        for(int j = 0; j < decryptKey[0]; j++)
         {
           if(msg[i] == 'a')
             msg[i] = 'z';
@@ -90,9 +93,6 @@ struct Scramble
         key.push_back(randInt2);
       }
     }
-    for(int i = 0; i < key.size(); i++)
-      cout << key[i];
-    cout << endl;
   }
 
   //Reverses scramble algorithm
@@ -130,54 +130,93 @@ int main()
 
   cout << "Welcome to my message encryption program\nEnter \"done\" when you are done\n";
   choice = encryptDecrypt();
-
   cin.ignore(choice.length()+1,'\n');
-  message = getMessage();
 
   if(choice == "e")
   {
+
+    message = getMessageForEncryption();
+
     caesar.encrypt(message);
-    cout << message << endl;
     decryptKey.push_back(caesar.cipherKey);
-    cout << decryptKey[0] << endl;
 
     prepForScramble(message, splitMsg);
 
-    for(int i = 0; i < splitMsg.size(); i++)
-      cout << splitMsg[i] << " ";
-    cout << endl;
-
     scramble.scramble(splitMsg, decryptKey);
+
+    storeInfo(splitMsg, decryptKey);
+
+    cout << "Check EncryptedMessages.txt for your encrypted message and key\n";
   }
 
-
-
-  // scramble.scramble(splitMsg);
-
-  // cout << "Scrambled message: ";
-  // for(int i = 0; i < splitMsg.size(); i++)
-  //   cout << splitMsg[i] << " ";
-  // cout << endl;
-  //
-  // storeInfo(splitMsg, scramble.key);
-
-  // scramble.unscramble(splitMsg, scramble.key);
-  //
-  // cout << "Unscrambled message: ";
-  // for(int i = 0; i < splitMsg.size(); i++)
-  //   cout << splitMsg[i] << " ";
-  // cout << endl;
+  else if(choice == "d")
+  {
+    getMessageAndKey(splitMsg, decryptKey);
+    for(int i = 0; i < splitMsg.size(); i++)
+      cout << splitMsg[i];
+    cout << endl;
+  }
 
   return 0;
 }
 
-string getMessage()
+string getMessageForEncryption()
 {
   string msg;
   cout << "Enter a message for encryption: ";
   getline(cin, msg);
 
   return msg;
+}
+
+void getMessageAndKey(vector<string>& messageVector, vector<int>& keyVector)
+{
+  ofstream messageFileOutput;
+  ofstream keyFileOutput;
+  ifstream keyFileInput;
+  ifstream messageFileInput;
+  string msg;
+  string tempKey;
+  vector<string> tempVector;
+  string line;
+
+  cout << "Enter an encrypted message: ";
+  getline(cin, msg);
+
+  messageFileOutput.open("info.txt");
+  messageFileOutput << msg;
+  messageFileOutput.close();
+
+  system("SplitMessage.exe");
+
+  messageFileInput.open("info.txt");
+  while(getline(messageFileInput, line))
+    messageVector.push_back(line);
+  messageFileInput.close();
+
+  cout << "Enter the key to decrypt the message: ";
+  getline(cin, tempKey);
+
+  keyFileOutput.open("info.txt");
+  keyFileOutput << tempKey;
+  keyFileOutput.close();
+
+  system("SplitMessage.exe");
+
+  keyFileInput.open("info.txt");
+  while(getline(keyFileInput, line))
+    tempVector.push_back(line);
+  keyFileInput.close();
+
+  for(int i = 0; i < tempVector.size(); i++)
+  {
+      stringstream num(tempVector[i]);
+
+      int x = 0;
+      num >> x;
+
+      keyVector.push_back(x);
+  }
 }
 
 //Gets a message from the user and stores it in msg
@@ -202,22 +241,7 @@ void prepForScramble(string msg, vector<string>& msgVector)
   fileInput.close();
 }
 
-// //Splits ciphered message to prepare for scrambling
-// void splitMessage(vector<string>& msg)
-// {
-//   ofstream fileOutput;
-//   ifstream fileInput;
-//   string line;
-//
-//   fileInput.open("info.txt");
-//
-//   while(getline(Inputfile, line))
-//     msg.push_back(line);
-//
-//   file.close();
-// }
-
-void storeInfo(vector<string>& eMsg, vector<int>& key)
+void storeInfo(vector<string> eMsg, vector<int> key)
 {
   ofstream file;
   file.open("EncryptedMessages.txt", ios_base::app);
