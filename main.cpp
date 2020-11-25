@@ -14,15 +14,10 @@ string encryptDecrypt();
 string encrypt(string&);
 string decrypt(string&, int);
 string getMessageForEncryption();
-void getMessageAndKey(vector<string>&, vector<int>&);
-void prepForScramble(string, vector<string>&);
-void prepMessage(string);
-void splitMessage(vector<string>&);
-void scramble(vector<string>&, vector<int>&);
-void unscramble(vector<string>&, vector<int>);
-void storeInfo(vector<string>, vector<int>);
-void getDecryptKey(vector<int>&);
-
+void getMessageAndKey(string&, vector<int>&);
+void scramble(string&, vector<int>&);
+void unscramble(string&, vector<int>);
+void storeInfo(string, vector<int>);
 
 //Container for Caesar Cipher algorithms
 struct CaesarCipher
@@ -51,14 +46,14 @@ struct CaesarCipher
   }
 
   //Reverses caesar cipher
-  string decrypt(string& msg, vector<int>decryptKey)
+  string decrypt(string& msg, int decryptKey)
   {
     for (int i = 0; msg[i] != '\0'; i++)
     {
       msg[i] = tolower(msg[i]);
       if(isalpha(msg[i]))
       {
-        for(int j = 0; j < decryptKey[0]; j++)
+        for(int j = 0; j < decryptKey; j++)
         {
           if(msg[i] == 'a')
             msg[i] = 'z';
@@ -74,43 +69,35 @@ struct CaesarCipher
 //Container for scrambling and unscrambling algorithms
 struct Scramble
 {
-  //vector<int> key;
-
   //Scrambles each word in msg vector
-  void scramble(vector<string>& msg, vector<int>& key)
+  void scramble(string& msg, vector<int>& key)
   {
     srand(time(0));
-    for(int i = 0; i < msg.size(); i++)
+    for(int j = 0; j < msg.length(); j++)
     {
-      for(int j = 0; j < msg[i].length(); j++)
-      {
-        int randInt = rand() % msg[i].length();
-        int randInt2 = rand() % msg[i].length();
+      int randInt = rand() % msg.length();
+      int randInt2 = rand() % msg.length();
 
-        swap(msg[i][randInt], msg[i][randInt2]);
+      swap(msg[randInt], msg[randInt2]);
 
-        key.push_back(randInt);
-        key.push_back(randInt2);
+      key.push_back(randInt);
+      key.push_back(randInt2);
       }
-    }
   }
 
   //Reverses scramble algorithm
-  void unscramble(vector<string>& msg, vector<int> decryptKey)
+  void unscramble(string& msg, vector<int> decryptKey)
   {
     int num1 = decryptKey.size() - 1;
     int num2 = decryptKey.size() - 2;
 
-    for(int i = 0; i < msg.size(); i++)
+    for(int j = 0; j < msg.length(); j++)
     {
-      for(int j = 0; j < msg[i].length(); j++)
-      {
-        swap(msg[i][decryptKey[num1]], msg[i][decryptKey[num2]]);
+      swap(msg[decryptKey[num1]], msg[decryptKey[num2]]);
 
-        num1 -= 2;
-        num2 -= 2;
+      num1 -= 2;
+      num2 -= 2;
       }
-    }
   }
 };
 
@@ -134,27 +121,28 @@ int main()
 
   if(choice == "e")
   {
-
     message = getMessageForEncryption();
 
     caesar.encrypt(message);
     decryptKey.push_back(caesar.cipherKey);
 
-    prepForScramble(message, splitMsg);
+    scramble.scramble(message, decryptKey);
 
-    scramble.scramble(splitMsg, decryptKey);
-
-    storeInfo(splitMsg, decryptKey);
+    storeInfo(message, decryptKey);
 
     cout << "Check EncryptedMessages.txt for your encrypted message and key\n";
   }
 
   else if(choice == "d")
   {
-    getMessageAndKey(splitMsg, decryptKey);
-    for(int i = 0; i < splitMsg.size(); i++)
-      cout << splitMsg[i];
-    cout << endl;
+    getMessageAndKey(message, decryptKey);
+
+    caesar.decrypt(message, decryptKey[0]);
+    decryptKey.erase(decryptKey.begin());
+
+    scramble.unscramble(message, decryptKey);
+
+    cout << message << endl;
   }
 
   return 0;
@@ -169,30 +157,18 @@ string getMessageForEncryption()
   return msg;
 }
 
-void getMessageAndKey(vector<string>& messageVector, vector<int>& keyVector)
+void getMessageAndKey(string& msg, vector<int>& keyVector)
 {
   ofstream messageFileOutput;
   ofstream keyFileOutput;
   ifstream keyFileInput;
   ifstream messageFileInput;
-  string msg;
   string tempKey;
   vector<string> tempVector;
   string line;
 
   cout << "Enter an encrypted message: ";
   getline(cin, msg);
-
-  messageFileOutput.open("info.txt");
-  messageFileOutput << msg;
-  messageFileOutput.close();
-
-  system("SplitMessage.exe");
-
-  messageFileInput.open("info.txt");
-  while(getline(messageFileInput, line))
-    messageVector.push_back(line);
-  messageFileInput.close();
 
   cout << "Enter the key to decrypt the message: ";
   getline(cin, tempKey);
@@ -208,6 +184,7 @@ void getMessageAndKey(vector<string>& messageVector, vector<int>& keyVector)
     tempVector.push_back(line);
   keyFileInput.close();
 
+  //Converts integers from type string to type int
   for(int i = 0; i < tempVector.size(); i++)
   {
       stringstream num(tempVector[i]);
@@ -219,37 +196,13 @@ void getMessageAndKey(vector<string>& messageVector, vector<int>& keyVector)
   }
 }
 
-//Gets a message from the user and stores it in msg
-//Stores users message in info.txt file for splitting using SplitMessage.py
-void prepForScramble(string msg, vector<string>& msgVector)
-{
-  ofstream fileOutput;
-  ifstream fileInput;
-  string line;
-
-  fileOutput.open("info.txt");
-  fileOutput << msg;
-  fileOutput.close();
-
-  system("SplitMessage.exe");
-
-  fileInput.open("info.txt");
-
-  while(getline(fileInput, line))
-    msgVector.push_back(line);
-
-  fileInput.close();
-}
-
-void storeInfo(vector<string> eMsg, vector<int> key)
+void storeInfo(string eMsg, vector<int> key)
 {
   ofstream file;
   file.open("EncryptedMessages.txt", ios_base::app);
 
-  file << left << setw(20) << "Encrypted Message: ";
-  for(int i = 0; i < eMsg.size(); i++)
-    file << eMsg[i] << " ";
-  file << endl;
+  file << left << setw(20) << "Encrypted Message: " << eMsg << endl;;
+
 
   file << left << setw(20) << "Key: ";
   for(int i = 0; i < key.size(); i++)
@@ -258,12 +211,6 @@ void storeInfo(vector<string> eMsg, vector<int> key)
   file << endl;
 
   file.close();
-}
-
-void getDecryptKey(vector<int>& key)
-{
-  Scramble scramble;
-
 }
 
 string encryptDecrypt()
